@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "manifest_version": 2,
   "description": "pagevars 测试用",
-  "icons": {
-  },
-  "background": {
-    "scripts": [ "pagevars.js", "test.js" ]
-  }
+  "content_scripts": [
+    {
+      "matches": ["file:///*/chrome-pagevars/test/index.html"],
+      "js": [ "pagevars.js", "test/content.js" ]
+    }
+  ]
 }
