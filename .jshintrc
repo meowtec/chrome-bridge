@@ -41,7 +41,9 @@
     "module",
     "require",
     "exports",
-    "chrome"
+    "chrome",
+    "exec",
+    "postDataBack"
   ],
   "lastsemic": true,
   "nonbsp": true,
