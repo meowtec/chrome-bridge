@@ -14,7 +14,7 @@ window.exec = (function () {
     },
 
     // 在当前页面执行一段script
-    execScript: function (str) {
+    evaluate: function (str) {
       var script = document.createElement('script')
       script.innerHTML = str
       document.body.appendChild(script)
@@ -32,7 +32,7 @@ window.exec = (function () {
 
   var callbacksDict = {};
   var rtScript = utils.getScriptInner(function () {
-    var postDataBack = function (text, callbackName) {
+    var callbackData = function (text, callbackName) {
       document.body.dataset['{{datasetName}}'] = JSON.stringify({
         'rid': '{{rid}}',
         'name': callbackName,
@@ -52,11 +52,25 @@ window.exec = (function () {
         value.setAttribute('elodia-elem-' + randAttr, '')
         code = code + 'var ' + key + ' = document.querySelector(\'[elodia-elem-' + randAttr + ']\');'
       } else {
-        var quot = typeof value === 'string' ? '\'' : ''
-        code = code + 'var ' + key + ' = ' + quot + value + quot + ';'
+        code = code + 'var ' + key + ' = JSON.parse(' + JSON.stringify(value) + ');'
       }
     }
     return code
+  }
+  var stringifyArr = function(arr){
+    var str = '['
+    for(var i = 0; i<arr.length; i++){
+      var item = arr[i]
+      if(item instanceof HTMLElement){
+        var randAttr = utils.randstring()
+        item.setAttribute('elodia-elem-' + randAttr, '')
+        str = str + 'document.querySelector(\'[elodia-elem-' + randAttr + ']\'), '
+      }else{
+        str = str + JSON.stringify(item) + ', '
+      }
+    }
+    str = str.replace(/,\s*$/, '') + ']'
+    return str
   }
 
   // 监听属性变化
@@ -87,17 +101,14 @@ window.exec = (function () {
   }
   observer.observe(document.body, config);
 
-  var exec = function (func, callbacks, vars) {
+  var exec = function (func) {
+    var args = [].slice.call(arguments, 1)
+    // TODO: 对 args 中的 element 进行处理
     var id = 'id' + parseInt(Math.random() * 10000000000000)
-    var scriptText = utils.getScriptInner(func)
-
-    var script = '(function(){' +
-      rtScript.replace('{{rid}}', id).replace('{{datasetName}}', datasetName) +
-      defineVars(vars) +
-      scriptText +
-      '})()';
-    utils.execScript(script)
-    callbacksDict[id] = callbacks
+    var scriptText = func.toString().replace(/function.*?\(/, 'function(')
+    var script = '(' + scriptText + ').apply(null, ' + stringifyArr(args) + ')'
+    script = script.replace('{{rid}}', id).replace('{{datasetName}}', datasetName)
+    utils.evaluate(script)
   }
   return exec
 })()
