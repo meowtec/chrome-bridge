@@ -78,7 +78,6 @@ window.exec = (function () {
       var attrname = mutation.attributeName
       var attrValue = elem.getAttribute(attrname)
       if (attrname === 'data-bind' && attrValue !== '') {
-        console.log(attrValue)
         var value = JSON.parse(attrValue)
         var rid = value.rid
         var data = value.data
