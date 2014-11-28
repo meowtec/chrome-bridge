@@ -34,7 +34,11 @@ window.exec = (function () {
         if(item instanceof HTMLElement){
           var randAttr = utils.randstring()
           item.setAttribute('elodia-elem-' + randAttr, '')
-          str = str + 'document.querySelector(\'[elodia-elem-' + randAttr + ']\'), '
+          str = str + '(function(){' +
+          'var elem = document.querySelector(\'[elodia-elem-' + randAttr + ']\');' +
+          'elem.removeAttribute(\'elodia-elem-' + randAttr + '\');' +
+          'return elem;' +
+          '})(), '
         }else{
           str = str + JSON.stringify(item) + ', '
         }
