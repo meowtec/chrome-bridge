@@ -1,4 +1,3 @@
-eval('console.log(\'aaaa\')')
 exec(function(arg1, arg2, arg3){
   console.log(arg3)
   callbackData(arg1 + 1, arg2 + 1, 'success', document.body)
