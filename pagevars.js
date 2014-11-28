@@ -31,14 +31,28 @@ window.exec = (function () {
   var datasetName = 'elodia' + utils.randstring()
 
   var callbacksDict = {};
-  var rtScript = utils.getScriptInner(function () {
-    var callbackData = function (text, callbackName) {
+  var contentPreScript = utils.getScriptInner(function () {
+    var stringifyArr = function(arr){
+      var str = '['
+      for(var i = 0; i<arr.length; i++){
+        var item = arr[i]
+        if(item instanceof HTMLElement){
+          var randAttr = utils.randstring()
+          item.setAttribute('elodia-elem-' + randAttr, '')
+          str = str + 'document.querySelector(\'[elodia-elem-' + randAttr + ']\'), '
+        }else{
+          str = str + JSON.stringify(item) + ', '
+        }
+      }
+      str = str.replace(/,\s*$/, '') + ']'
+      return str
+    }
+    var callbackData = function(){
       document.body.dataset['{{datasetName}}'] = JSON.stringify({
-        'rid': '{{rid}}',
-        'name': callbackName,
-        'data': text
+        rid: '{{rid}}',
+        data: stringifyArr(arguments)
       })
-    };
+    }
   })
 
   // defineVars
@@ -79,18 +93,14 @@ window.exec = (function () {
       var attrname = mutation.attributeName
       var attrValue = document.body.getAttribute(attrname)
       if (attrname === 'data-' + datasetName && attrValue !== '') {
-        var data = JSON.parse(attrValue)
-        var rid = data.rid
-        var name = data.name
-        var text = data.data
+        console.log(attrValue)
+        var value = JSON.parse(attrValue)
+        var rid = value.rid
+        var data = value.data
         var callbacks = callbacksDict[rid]
-        var callback
-        if (typeof callbacks === 'function') {
-          callback = callbacks
-        } else {
-          callback = callbacks[name]
-        }
-        callback && callback(text, name)
+        callbacks.forEach(function (callback){
+          callback.apply(null, (eval('('+data+')')))
+        })
         document.body.setAttribute(attrname, '')
       }
     });
@@ -103,12 +113,17 @@ window.exec = (function () {
 
   var exec = function (func) {
     var args = [].slice.call(arguments, 1)
-    // TODO: 对 args 中的 element 进行处理
+    // 随机 rid
     var id = 'id' + parseInt(Math.random() * 10000000000000)
-    var scriptText = func.toString().replace(/function.*?\(/, 'function(')
+    // 去 function name
+    var scriptText = func.toString().replace(/function.*?\(/, 'function(').replace(/\{/, '{'+contentPreScript+';')
     var script = '(' + scriptText + ').apply(null, ' + stringifyArr(args) + ')'
     script = script.replace('{{rid}}', id).replace('{{datasetName}}', datasetName)
     utils.evaluate(script)
+    return function(callback){
+      callbacksDict[id] = callbacksDict[id] || []
+      callbacksDict[id].push(callback)
+    }
   }
   return exec
 })()
