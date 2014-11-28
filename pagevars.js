@@ -95,7 +95,7 @@ window.exec = (function () {
   var exec = function (func) {
     var args = [].slice.call(arguments, 1)
     // 随机 rid
-    var id = 'id' + parseInt(Math.random() * 10000000000000)
+    var id = Math.random()
     // 去 function name
     var scriptText = func.toString().replace(/function.*?\(/, 'function(').replace(/\{/, '{'+contentPreScript+';')
     var script = '(' + scriptText + ').apply(null, ' + utils.stringifyArr(args) + ')'
