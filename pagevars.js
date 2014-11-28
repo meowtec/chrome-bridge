@@ -14,11 +14,12 @@ window.exec = (function () {
     },
 
     // 在当前页面执行一段script
-    evaluate: function (str) {
+    evaluate: function (str, target) {
+      var elem = target || document.body
       var script = document.createElement('script')
       script.innerHTML = str
-      document.body.appendChild(script)
-      //document.body.removeChild(script)
+      elem.appendChild(script)
+      elem.removeChild(script)
     },
 
     //获取function内部代码字符串
@@ -42,19 +43,22 @@ window.exec = (function () {
       return str
     }
   }
-
+  // 绑定数据用的 element
+  var elem = document.createElement('div')
   // id, 用来绑定 exec(script) 中返回的数据
   var datasetName = 'elodia' + utils.randstring()
-
+  elem.setAttribute(datasetName, '')
   var callbacksDict = {};
 
   var contentPreScript = utils.getScriptInner(function () {
     var callbackData = (function(){
+      var elem = document.querySelector('div[{{datasetName}}]')
+      document.body.removeChild(elem)
       var utils = {}
       utils.randstring = function (){}
       utils.stringifyArr = function (){}
       return function(){
-        document.body.dataset['{{datasetName}}'] = JSON.stringify({
+        elem.dataset.bind = JSON.stringify({
           rid: '{{rid}}',
           data: utils.stringifyArr(arguments)
         })
@@ -68,8 +72,8 @@ window.exec = (function () {
   var observer = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
       var attrname = mutation.attributeName
-      var attrValue = document.body.getAttribute(attrname)
-      if (attrname === 'data-' + datasetName && attrValue !== '') {
+      var attrValue = elem.getAttribute(attrname)
+      if (attrname === 'data-bind' && attrValue !== '') {
         console.log(attrValue)
         var value = JSON.parse(attrValue)
         var rid = value.rid
@@ -78,7 +82,7 @@ window.exec = (function () {
         callbacks.forEach(function (callback){
           callback.apply(null, (eval('('+data+')')))
         })
-        document.body.setAttribute(attrname, '')
+        elem.setAttribute(attrname, '')
       }
     });
   });
@@ -86,7 +90,7 @@ window.exec = (function () {
   var config = {
     attributes: true
   }
-  observer.observe(document.body, config);
+  observer.observe(elem, config);
 
   var exec = function (func) {
     var args = [].slice.call(arguments, 1)
@@ -96,7 +100,8 @@ window.exec = (function () {
     var scriptText = func.toString().replace(/function.*?\(/, 'function(').replace(/\{/, '{'+contentPreScript+';')
     var script = '(' + scriptText + ').apply(null, ' + utils.stringifyArr(args) + ')'
     script = script.replace('{{rid}}', id).replace('{{datasetName}}', datasetName)
-    utils.evaluate(script)
+    document.body.appendChild(elem)
+    utils.evaluate(script, elem)
     return function(callback){
       callbacksDict[id] = callbacksDict[id] || []
       callbacksDict[id].push(callback)
