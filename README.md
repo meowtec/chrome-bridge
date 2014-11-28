@@ -8,17 +8,37 @@ pagevars
 1. 在manifest中加载pagevars.js
 2. 在需要调用页面变量（方法）的地方使用 exec 方法。
 
+
+实例：
+假设 content script 中有一个动态的参数 `url`, 我希望使用 `jQuery.ajax()` 方法来加载这个 `url`。
+页面自带 jQuery，扩展不带。但是 content script 中是无法访问页面自带的 jQuery。
+可以这样使用：
 ```
 // exec
-var execall = exec(function(arg1, arg2, arg3){
-  console.log(arg3)
-  callbackData(arg1 + 1, arg2 + 1, 'success', document.body)
-}, 0, 1, document.getElementById('ee'))
-
-// listen
-execall(function(a1, a2, a3, result, element){
-  console.log(a1, a2, a3, result, element)
-})
-
+var theUrl = 'http://domain/path/'
+exec(function(url){
+  // 页面注入内容
+  jQuery.ajax({
+    url: url
+  })
+}, theUrl)
 ```
 
+调用 页面中的 `jQuery.ajax()`，肯定是需要获取 `ajax` 返回值的，然后使用返回值进行后面的操作，比如从返回值中获取有用信息传给 `background` 页面。
+那么，首先我们需要把返回值从页面运行环境传给 content script：
+
+```
+var theUrl = 'http://domain/path/'
+exec(function(url){
+  // 页面注入内容
+  jQuery.ajax({
+    url: url,
+    success: function(data){
+      callbackData(data)
+    }
+  })
+}, theUrl)(function(data){
+  // content script 取得返回值
+  console.log(data)
+})
+```
