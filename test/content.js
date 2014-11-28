@@ -1,7 +1,8 @@
-exec(function(arg1, arg2, arg3){
-  console.log(arg3)
-  callbackData(arg1 + 1, arg2 + 1, 'success', document.body)
+var elem = document.body
+exec(function(arg){
+  console.log(arg)
+  callbackData(pageVar1, 'success', theLink)
 
-}, 0, 1, document.getElementById('ee'))(function(a1, a2, a3, result, element){
-  console.log(a1, a2, a3, result, element)
+}, elem)(function(x, result, element){
+  console.log(x, result, element)
 })
