@@ -1,24 +1,8 @@
-function equal(name, a, b){
-  if(a === b){
-    console.log(name, true )
-  }else{
-    console.error(name, false, a, b)
-  }
-}
+eval('console.log(\'aaaa\')')
+exec(function(arg1, arg2, arg3){
+  console.log(arg3)
+  callbackData(arg1 + 1, arg2 + 1, 'success', document.body)
 
-// 最复杂的情况
-var execfunc = function () {
-  postDataBack(pageVar1, 'reciever1')
-  equal('传入参数', strrrrr, 'content var 1')
-  equal('传入dom', body, document.body)
-}
-var execCallbacks = {
-  'reciever1': function (str) {
-    equal('返回值', str, 'abc')
-  }
-}
-var execVars = {
-  'strrrrr': 'content var 1',
-  'body': document.body
-}
-exec(execfunc, execCallbacks, execVars)
+}, 0, 1, document.getElementById('ee'))(function(a1, a2, a3, result, element){
+  console.log(a1, a2, a3, result, element)
+})

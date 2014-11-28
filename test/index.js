@@ -1,3 +1,4 @@
+// 页面自带 js
 var pageVar1 = 'abc'
 
 function equal(name, a, b){
