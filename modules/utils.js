@@ -6,4 +6,5 @@ export const injectScript = src => {
   const script = document.createElement('script')
   script.innerHTML = src
   document.head.appendChild(script)
+  document.head.removeChild(script)
 }

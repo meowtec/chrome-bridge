@@ -1,8 +1,8 @@
 {
   "name": "chrome-bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "bridge between chrome content script and page",
-  "main": "dist/chrome-bridge.dist.js",
+  "main": "dist/chrome-bridge.es5.js",
   "module": "modules/index.js",
   "scripts": {
     "build:es6": "BUILD_TYPE=es6 rollup -c",
