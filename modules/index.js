@@ -1,24 +1,18 @@
-import { uuid, injectScript } from './utils'
+import { uid, injectScript, once } from './utils'
 // raw text of runtime.js
 import runtime from './runtime'
 
-const CHROME_BRIDGE = 'CHROME_BRIDGE_' + uuid()
+const CHROME_BRIDGE = 'CHROME_BRIDGE_' + uid()
 
-const registerRuntimeOnce = (() => {
-  let registered = false
-  return () => {
-    if (!registered) {
-      injectScript(runtime.replace(/CHROME_BRIDGE/g, CHROME_BRIDGE))
-      registered = true
-    }
-  }
-})()
+const registerRuntime = once(() => {
+  injectScript(runtime.replace(/CHROME_BRIDGE/g, CHROME_BRIDGE))
+})
 
 const createMessageListener = () => {
   const handlers = {}
 
   window.addEventListener('message', ({data}) => {
-    if (data.type === CHROME_BRIDGE) {
+    if (data && data.type === CHROME_BRIDGE) {
       const handler = handlers[data.id]
       if (handler) {
         handler(data.success, data.result)
@@ -36,9 +30,9 @@ const onmessage = createMessageListener()
 
 const call = (func, args = []) => {
   return new Promise((resolve, reject) => {
-    registerRuntimeOnce()
+    registerRuntime()
 
-    const id = 'callid_' + uuid()
+    const id = 'callid_' + uid()
     injectScript(`
       __${CHROME_BRIDGE}__.call(
         ${JSON.stringify(id)},
