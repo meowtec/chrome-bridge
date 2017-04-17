@@ -15,14 +15,20 @@ const injectScript = src => {
   document.head.removeChild(script);
 };
 
-var runtime = "window.__CHROME_BRIDGE__ = (function () {\n  function errorMessage(error) {\n    if (error) {\n      if (error.message) return error.message\n      if (error.toString) return error.toString()\n    }\n\n    return 'Unknown Error'\n  }\n\n  function call(id, func, args) {\n    Promise.resolve().then(function () {\n      return func.apply(null, args)\n    }).then(function (result) {\n      feedback(id, result, true)\n    }).catch(function (error) {\n      feedback(id, error, false)\n    })\n  }\n\n  function feedback(id, result, success) {\n    try {\n      window.postMessage({\n        id: id,\n        success: success,\n        result: success ? result : errorMessage(result),\n        type: 'CHROME_BRIDGE'\n      }, '*')\n    } catch (e) {\n      window.postMessage({\n        id: id,\n        success: false,\n        result: errorMessage(e),\n        type: 'CHROME_BRIDGE'\n      }, '*')\n    }\n  }\n\n  return {\n    call: call\n  }\n})()\n";
+var runtime = "export default \"window.__CHROME_BRIDGE__ = (function () {\\n  function errorMessage(error) {\\n    if (error) {\\n      if (error.message) return error.message\\n      if (error.toString) return error.toString()\\n    }\\n\\n    return 'Unknown Error'\\n  }\\n\\n  function call(id, func, args) {\\n    Promise.resolve().then(function () {\\n      return func.apply(null, args)\\n    }).then(function (result) {\\n      feedback(id, result, true)\\n    }).catch(function (error) {\\n      feedback(id, error, false)\\n    })\\n  }\\n\\n  function feedback(id, result, success) {\\n    try {\\n      window.postMessage({\\n        id: id,\\n        success: success,\\n        result: success ? result : errorMessage(result),\\n        type: 'CHROME_BRIDGE'\\n      }, '*')\\n    } catch (e) {\\n      window.postMessage({\\n        id: id,\\n        success: false,\\n        result: errorMessage(e),\\n        type: 'CHROME_BRIDGE'\\n      }, '*')\\n    }\\n  }\\n\\n  return {\\n    call: call\\n  }\\n})()\\n\"";
 
 // raw text of runtime.js
 const CHROME_BRIDGE = 'CHROME_BRIDGE_' + uuid();
 
-const registerRuntime = () => {
-  injectScript(runtime.replace(/CHROME_BRIDGE/g, CHROME_BRIDGE));
-};
+const registerRuntimeOnce = (() => {
+  let registered = false;
+  return () => {
+    if (!registered) {
+      injectScript(runtime.replace(/CHROME_BRIDGE/g, CHROME_BRIDGE));
+      registered = true;
+    }
+  }
+})();
 
 const createMessageListener = () => {
   const handlers = {};
@@ -46,6 +52,8 @@ const onmessage = createMessageListener();
 
 const call = (func, args = []) => {
   return new Promise((resolve, reject) => {
+    registerRuntimeOnce();
+
     const id = 'callid_' + uuid();
     injectScript(`
       __${CHROME_BRIDGE}__.call(
@@ -64,8 +72,6 @@ const call = (func, args = []) => {
     });
   })
 };
-
-registerRuntime();
 
 exports.call = call;
 

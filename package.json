@@ -1,12 +1,13 @@
 {
   "name": "chrome-bridge",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "bridge between chrome content script and page",
   "main": "dist/chrome-bridge.es5.js",
   "module": "modules/index.js",
   "scripts": {
-    "build:es6": "BUILD_TYPE=es6 rollup -c",
-    "build:es5": "BUILD_TYPE=es5 rollup -c",
+    "text-module": "./scripts/text-module modules/runtime.src.js modules/runtime.js",
+    "build:es5": "npm run text-module && BUILD_TYPE=es5 rollup -c",
+    "build:es6": "npm run text-module && BUILD_TYPE=es6 rollup -c",
     "prepublish": "npm run build:es5 && npm run build:es6",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

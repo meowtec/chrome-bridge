@@ -4,9 +4,15 @@ import runtime from './runtime'
 
 const CHROME_BRIDGE = 'CHROME_BRIDGE_' + uuid()
 
-const registerRuntime = () => {
-  injectScript(runtime.replace(/CHROME_BRIDGE/g, CHROME_BRIDGE))
-}
+const registerRuntimeOnce = (() => {
+  let registered = false
+  return () => {
+    if (!registered) {
+      injectScript(runtime.replace(/CHROME_BRIDGE/g, CHROME_BRIDGE))
+      registered = true
+    }
+  }
+})()
 
 const createMessageListener = () => {
   const handlers = {}
@@ -30,6 +36,8 @@ const onmessage = createMessageListener()
 
 const call = (func, args = []) => {
   return new Promise((resolve, reject) => {
+    registerRuntimeOnce()
+
     const id = 'callid_' + uuid()
     injectScript(`
       __${CHROME_BRIDGE}__.call(
@@ -48,8 +56,6 @@ const call = (func, args = []) => {
     })
   })
 }
-
-registerRuntime()
 
 export {
   call,

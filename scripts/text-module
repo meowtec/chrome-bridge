@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+
+const fs = require('fs')
+const [input, output] = process.argv.slice(2)
+
+const string = fs.readFileSync(input, 'utf-8')
+fs.writeFileSync(output, `export default ${JSON.stringify(string)}`)
