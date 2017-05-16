@@ -12,7 +12,7 @@ export default {
     : 'dist/chrome-bridge.es6.js',
   plugins: [
     string({
-      include: 'modules/runtime.js',
+      include: 'modules/runtime.sjs',
     }),
     ...(
       process.env.BUILD_TYPE === 'es5'

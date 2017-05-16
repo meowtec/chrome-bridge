@@ -1,6 +1,6 @@
 import { uid, injectScript, once } from './utils'
 // raw text of runtime.js
-import runtime from './runtime'
+import runtime from './runtime.sjs'
 
 const CHROME_BRIDGE = 'CHROME_BRIDGE_' + uid()
 
